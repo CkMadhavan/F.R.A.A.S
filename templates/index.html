@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Display Webcam Stream</title>
+
+<style>
+    #container {
+        margin: 0px auto;
+        width: 500px;
+        height: 300px;
+        border: 10px #333 solid;
+    }
+    #videoElement {
+        width: 500px;
+        height: 300px;
+        background-color: #666;
+    }
+</style>
+
+</head>
+ 
+    <body>
+
+        <div><img id="myDIV" style=display:none;position:fixed;top:45%;left:45%; src = {{url_for('static' , filename = 'load.gif')}} width=250px height=250px></div>
+
+        <center>
+            <img id = "img" width="500px" height="500px"/>
+            <div id="container">
+                <video autoplay="true" id="videoElement">
+                
+                </video>
+            </div><br>
+
+            <center>
+                <form id = 'uploader' name = "uploader" action = "/" method = "POST" enctype = "multipart/form-data">
+                    <input type="text" name="text" id = "text" hidden="true"></input>
+                    <input type="submit" id = "take" onclick="return stop();" value = "Take Attendance"><br>
+                </form>
+                <button type="button" onclick="window.location.href='{{ url_for( 'attnhistory' ) }}';">Display Attendance History</button>
+
+            </center>
+
+        </center>
+
+
+        <script>
+
+            var img = document.getElementById("img");                        
+            var video = document.getElementById("videoElement");
+            var container = document.getElementById("container");
+            var button = document.getElementById('take');
+            var text = document.getElementById('text');
+            var form = document.getElementById('uploader');
+            var x = document.getElementById("myDIV");
+            
+            img.hidden = true;
+
+            if (navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                video.srcObject = stream;
+                })
+                .catch(function (err0r) {
+                console.log("Something went wrong!");
+                });
+            }
+
+
+            function stop(e) {
+
+                if (x.style.display === "none") {
+                    x.style.display = "block";
+                }
+
+                const canvas = document.createElement("canvas");
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d')
+                .drawImage(video, 0, 0, canvas.width, canvas.height);
+                const dataURL = canvas.toDataURL();
+
+                container.hidden = true;
+                img.hidden = false;
+                button.disabled = true;
+
+                img.src = dataURL;
+
+                text.value = img.src;
+
+                var stream = video.srcObject;
+                var tracks = stream.getTracks();
+
+                for (var i = 0; i < tracks.length; i++) {
+                    var track = tracks[i];
+                    track.stop();
+                }
+
+                video.srcObject = null;
+
+                form.submit();
+            }
+
+        </script>
+</body>
+</html> 
